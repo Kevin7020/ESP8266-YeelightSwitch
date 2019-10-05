@@ -1,13 +1,12 @@
-#include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
+#include <ESP8266WiFi.h> //https://github.com/esp8266/Arduino
 #include <DNSServer.h>
 #include <ESP8266WebServer.h>
-#include <WiFiManager.h>         //https://github.com/tzapu/WiFiManager
-#define button 12                //Pin for the button (D6)
-#define LED_BUILTIN 2            //LED_BUILTIN for the notificationLed
+#include <WiFiManager.h> //https://github.com/tzapu/WiFiManager
+#define button 12        //Pin for the button (D6)
+#define LED_BUILTIN 2    //LED_BUILTIN for the notificationLed
 WiFiManager wifiManager;
 
-const char* H0 = "192.168.0.50"; // Ip from first light
-//const char* H1 = "192.168.1.107"; //Ip from second light
+const char *H0 = "yeelink-light-ct"; // Ip or Hostname from your yeelight
 
 /*
  * If you want to make this please make sure to add a PULL-UP resistor 
@@ -15,7 +14,8 @@ const char* H0 = "192.168.0.50"; // Ip from first light
  * so that your light does not go full stroboscopic mode :)
 */
 
-void setup() {
+void setup()
+{
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
   pinMode(button, INPUT);
@@ -26,12 +26,12 @@ void setup() {
   digitalWrite(LED_BUILTIN, HIGH);
 }
 
-void SendInfo(const char* IpAddress) {
-  // Use WiFiClient class to create TCP connections
+void SendInfo(const char *IpAddress)
+{
+  WiFiClient client; // Use WiFiClient class to create TCP connections
   String TcpMethod = "{\"id\":1,\"method\":\"toggle\",\"params\":[]}\r\n"; // Toggle method for the Yeelight more at https://www.yeelight.com/download/Yeelight_Inter-Operation_Spec.pdf
   int port = 55443; // Lights port
   digitalWrite(LED_BUILTIN, LOW);
-  WiFiClient client;
   Serial.println("Creating a TCP connection");
   client.connect(IpAddress, port);
   Serial.println("Sending data through the connection");
@@ -40,22 +40,23 @@ void SendInfo(const char* IpAddress) {
   digitalWrite(LED_BUILTIN, HIGH);
 }
 
-void OnDemandConfig() {
-  wifiManager.setConfigPortalTimeout(180);
-  wifiManager.startConfigPortal("LightSwitch");
-}
+// void OnDemandConfig()
+// {
+//   wifiManager.setConfigPortalTimeout(180);
+//   wifiManager.startConfigPortal("LightSwitch");
+// }
 
-void loop() {
-  if (digitalRead(button) == LOW) {
-    if (WiFi.status() == WL_CONNECTED) {
-      Serial.println("STATUS: Connected to AP");
-    } else {
-      Serial.println("STATUS: Disconnected from AP");
+void loop()
+{
+  if (digitalRead(button) == LOW)
+  {
+    if (!wifiManager.autoConnect("LightSwitch"))
+    {
+      delay(3000);
+      ESP.reset();
     }
     Serial.println("Button 12 fired");
     delay(500);
     SendInfo(H0);
   }
 }
-
-
