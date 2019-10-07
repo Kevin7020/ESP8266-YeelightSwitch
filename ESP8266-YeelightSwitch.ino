@@ -6,7 +6,7 @@
 #define LED_BUILTIN 2    //LED_BUILTIN for the notificationLed
 WiFiManager wifiManager;
 
-const char *H0 = "yeelink-light-ct"; // Ip or Hostname from your yeelight
+const char *H0 = "192.168.0.50"; // Ip or Hostname from your yeelight
 
 /*
  * If you want to make this please make sure to add a PULL-UP resistor 
@@ -28,16 +28,30 @@ void setup()
 
 void SendInfo(const char *IpAddress)
 {
-  WiFiClient client; // Use WiFiClient class to create TCP connections
+  WiFiClient client;                                                       // Use WiFiClient class to create TCP connections
   String TcpMethod = "{\"id\":1,\"method\":\"toggle\",\"params\":[]}\r\n"; // Toggle method for the Yeelight more at https://www.yeelight.com/download/Yeelight_Inter-Operation_Spec.pdf
-  int port = 55443; // Lights port
+  int port = 55443;                                                        // Lights port
   digitalWrite(LED_BUILTIN, LOW);
   Serial.println("Creating a TCP connection");
-  client.connect(IpAddress, port);
-  Serial.println("Sending data through the connection");
-  client.print(TcpMethod);
-  client.stop();
-  digitalWrite(LED_BUILTIN, HIGH);
+  if (!client.connect(IpAddress, port))
+  {
+    Serial.println("connection failed");
+    digitalWrite(LED_BUILTIN, HIGH);
+    client.stop();
+    delay(250);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(250);
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(250);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(250);
+    digitalWrite(LED_BUILTIN, HIGH);
+  } else {
+    Serial.println("Toggle: " + String(IpAddress));
+    client.print(TcpMethod);
+    client.stop();
+    digitalWrite(LED_BUILTIN, HIGH);
+  }
 }
 
 // void OnDemandConfig()
